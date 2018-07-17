@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+  <html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>Mountain View Residential Garbage - Thursday</title>
+      <script src='https://api.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
+      <link href='https://api.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" type="text/css" crossorigin="">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" crossorigin=""></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+      <script src="ResGarbThursLines.js"></script>
+      <link rel="stylesheet" href="style29.css" type="text/css">
+       
+        <script type="text/javascript">
+          var routeNum = new Array();
+          var routeSummary = new Array()
+
+          function init() {
+          // create map and set center and zoom level
+          var map = L.map('mapid').setView([37.393807,-122.068598],14);      
+          L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {attribution: "Data copyright OpenStreetMap contributors"}).addTo(map);
+
+          var resGarbThursLayer;
+          var selection
+          var selectedLayer
+
+          var featureCollection;
+
+          var featureGroup = new L.FeatureGroup().addTo(map);
+
+          var drawControl = new L.Control.Draw({
+              edit: {
+                  featureGroup: featureGroup
+              }
+          }).addTo(map);
+
+          map.on('draw:created', function (e) {
+              featureGroup.addLayer(e.layer);
+              featureCollection = featureGroup.toGeoJSON();
+          });
+
+          var sumTable = new Array()
+
+        
+
+          /*var i;
+          var totalSumDemand = 0;
+          for (i = 0; i < thursdayData.features.length; i++) {
+            console.log(thursdayData.features[i].properties);
+            totalSumDemand += thursdayData.features[i].properties.SUM_Demand;
+          }
+          console.log(totalSumDemand);*/
+
+
+          function thursStyle(feature){
+          	for (r in routeNum) {
+          		//console.log (routeNum[r]);
+          	}
+            switch (feature.properties.Route){
+	            case '01X':
+	            	return {
+		                "color": "red",
+		                "weight": 5,
+		                "opacity": 0.65
+		              	};
+		              break;
+	           	case '02X':
+	            	return {
+		                "color": "blue",
+		                "weight": 5,
+		                "opacity": 0.65
+		              	};
+		              break;
+		        case '03X':
+	            	return {
+		                "color": "green",
+		                "weight": 5,
+		                "opacity": 0.65
+		              	};
+		              break;
+	            case '04X':
+		        	return {
+		                "color": "purple",
+		                "weight": 5,
+		                "opacity": 0.65
+		              	};
+		              break;
+	            case '05X':
+	        		return {
+		                "color": "orange",
+		                "weight": 5,
+		                "opacity": 0.65
+	              		};
+          			}
+        		}
+
+          function thursSelectedStyle(feature){
+            return {
+            "color": "#00FFFF",
+            "weight": 9,
+            "opacity": 0.95
+          };
+        }
+
+          // handle click events on pantry features
+          function thursOnEachFeature(feature, layer){
+			 // create an array for all route numbers
+             routeNum.push(feature.properties.Route);
+            layer.on({
+              click: function(e) {
+                  if (selection) {
+                    resetStyles();
+                  }
+                  e.target.setStyle(thursSelectedStyle());
+                  selection = e.target;
+                  selectedLayer = resGarbThursLayer;
+                  
+                  // Insert some HTML with the feature name
+                  buildSummaryLabel(feature);
+
+                  L.DomEvent.stopPropagation(e); // stop click event from being propagated further
+                }
+            });
+          }
+
+          // add the route GeoJSON layer using the pantriesData variable from pantries.js
+                resGarbThursLayer = new L.geoJSON(thursdayData,{ style: thursStyle, onEachFeature: thursOnEachFeature}).addTo(map);
+
+
+          // handle clicks on the map that didn't hit a feature
+          map.addEventListener('click', function(e) {
+            if (selection) {
+              resetStyles();
+              selection = null;
+              document.getElementById('summaryLabel').innerHTML = '<p>Click a line to get the sum of weight, service time, and stop numbers for that block.</p>';
+            }
+          });
+          
+          // function to set the old selected feature back to its original symbol. Used when the map or a feature is clicked.
+          function resetStyles(){
+            if (selectedLayer === resGarbThursLayer) selectedLayer.resetStyle(selection);
+          }
+          
+          // function to build the HTML for the summary label using the selected feature's "name" property
+          function buildSummaryLabel(currentFeature){
+            var Count = currentFeature.properties.COUNT_Ref_ || "Unnamed feature";
+            var Demand = currentFeature.properties.SUM_Demand || "Unnamed feature";
+            var Time = currentFeature.properties.SUM_Servic || "Unnamed feature";
+            var RouteNum = currentFeature.properties.Route || "Unnamed feature";
+            document.getElementById('summaryLabel').innerHTML = '<p style="font-size:18px"><b>' + "Stops: " + Count + '<br>' + "Tons: " + Demand + '<br>' + "Service time: " + Time + '<br>' + "Route: " + RouteNum + '</b></p>';
+          }          
+        } 
+        </script>
+      </head>
+      <body onload="init()">
+        <h1 id="title">Thursday Residential Garbage</h1>
+
+        <div id="mapid"></div>
+        <div id="summaryLabel">
+            <p>Click on a line to get more info.</p>
+        </div>
+      </body>
+    </html>
